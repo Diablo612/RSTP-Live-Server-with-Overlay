@@ -1,0 +1,20 @@
+# Python
+backend/venv/
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+
+# Stream output
+backend/stream/
+
+# Environment files
+.env
+
+# Vite build
+dist/
+
+# OS junk
+.DS_Store
+Thumbs.db

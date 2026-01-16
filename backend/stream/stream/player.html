@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Stream Player</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .info {
+            text-align: center;
+            color: #888;
+            margin-bottom: 20px;
+            font-size: 14px;
+            word-break: break-all;
+        }
+        #video {
+            width: 100%;
+            max-width: 100%;
+            background: #000;
+            border-radius: 8px;
+        }
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            background: #2a2a2a;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .status.loading { color: #ffa500; }
+        .status.playing { color: #00ff00; }
+        .status.error { color: #ff0000; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Live Stream Player</h1>
+        <div class="info">Source: C:\Users\adity\Desktop\Project\livestream-overlay-app\frontend\livestream-overlay\public\file_example_MP4_480_1_5MG.mp4</div>
+        <video id="video" controls autoplay muted></video>
+        <div id="status" class="status loading">Loading stream...</div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const status = document.getElementById('status');
+        
+        function updateStatus(message, state) {
+            status.textContent = message;
+            status.className = 'status ' + state;
+        }
+
+        if (Hls.isSupported()) {
+            const hls = new Hls({
+                enableWorker: true,
+                lowLatencyMode: true,
+                backBufferLength: 90
+            });
+            
+            hls.loadSource('stream.m3u8');
+            hls.attachMedia(video);
+            
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                updateStatus('Stream connected - Playing', 'playing');
+                video.play();
+            });
+            
+            hls.on(Hls.Events.ERROR, function(event, data) {
+                if (data.fatal) {
+                    updateStatus('Stream error: ' + data.type, 'error');
+                    setTimeout(() => {
+                        updateStatus('Retrying...', 'loading');
+                        hls.loadSource('stream.m3u8');
+                    }, 3000);
+                }
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = 'stream.m3u8';
+            video.addEventListener('loadedmetadata', function() {
+                updateStatus('Stream connected - Playing', 'playing');
+            });
+            video.addEventListener('error', function() {
+                updateStatus('Stream error', 'error');
+            });
+        } else {
+            updateStatus('HLS not supported in this browser', 'error');
+        }
+    </script>
+</body>
+</html>
